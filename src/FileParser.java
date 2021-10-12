@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -17,19 +18,29 @@ public class FileParser {
     private final String ipPlaceholder = "IP_ADDRESS_";
     private final String uuidPlaceholder = "UUID_";
     private final String destDirectoryPath = "./Sanitized_Logs/";
-    private Path destPath;
     private Path sourcePath;
+    private Path destPath;
+    private Path summaryPath;
     private ArrayList<String> fileIpAddressesToReplace = new ArrayList<>();
     private ArrayList<String> fileUuidToReplace = new ArrayList<>();
 
     public FileParser(Path sourcePath) {
         this.sourcePath = sourcePath;
         this.destPath = Paths.get(destDirectoryPath, sourcePath.getFileName().toString());
+        this.summaryPath = Paths.get(destDirectoryPath, sourcePath.getFileName().toString() + "_summary");
     }
 
     public void fileParser() throws Exception{
         // Sanitize file line by line and write the sanitized line to the sanitized file
         createDestFile();
+        // Write sanitized file
+        sanitizeFile();
+        // Write change summary file
+        writeChangeSummary(fileIpAddressesToReplace, ipPlaceholder);
+        writeChangeSummary(fileUuidToReplace, uuidPlaceholder);
+    }
+
+    private void sanitizeFile() {
         try (BufferedReader reader = Files.newBufferedReader(sourcePath, charset)) {
             try (BufferedWriter writer = Files.newBufferedWriter(destPath, charset)) {
                 String line;
@@ -63,6 +74,16 @@ public class FileParser {
         }
     }
 
+    private void writeChangeSummary(ArrayList<String> fileArrayList, String placeholder) throws IOException {
+        try (BufferedWriter writer = Files.newBufferedWriter(summaryPath, charset, StandardOpenOption.APPEND)) {
+            for (String item : fileArrayList) {
+                String output = placeholder + fileArrayList.indexOf(item) + " : " + item;
+                writer.append(output);
+                writer.newLine();
+            }
+        }
+    }
+
     private void createDestFile() throws Exception {
 
         File directory = new File(destDirectoryPath);
@@ -72,8 +93,9 @@ public class FileParser {
 
         try {
             Files.createFile(destPath);
+            Files.createFile(summaryPath);
         } catch (Exception e) {
-            throw new Exception("Error creating sanitized file: " + e);
+            throw new Exception("Error creating new files: " + e);
         }
     }
 
