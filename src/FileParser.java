@@ -12,28 +12,44 @@ import java.util.Set;
 public class FileParser {
 
     private ArrayList<String> fileIpAddressesToReplace = new ArrayList<>();
+    private ArrayList<String> fileUuidToReplace = new ArrayList<>();
     private final Charset charset = StandardCharsets.US_ASCII;
     private Path destPath;
     private Path sourcePath;
+    private final String ipPlaceholder = "IP_ADDRESS_";
+    private final String uuidPlaceholder = "UUID_";
 
     public FileParser(Path sourcePath, Path destPath) {
         this.sourcePath = sourcePath;
         this.destPath = destPath;
     }
 
-    public void fileParser() {
+    public void fileParser() throws Exception{
         // Sanitize file line by line and write the sanitized line to the sanitized file
-        if (!createDestFile()) return;
+        createDestFile();
         try (BufferedReader reader = Files.newBufferedReader(sourcePath, charset)) {
             try (BufferedWriter writer = Files.newBufferedWriter(destPath, charset)) {
                 String line;
+                // Sanitize line by line.
                 while ((line = reader.readLine()) != null) {
-                    ArrayList<String> lineIpAddressToReplace = StringSanitizer.stringSanitizer(line);
+                    // Extract IP
+                    ArrayList<String> lineIpAddressToReplace = IpExtractor.extractIp(line);
                     fileIpAddressesToReplace.addAll(lineIpAddressToReplace);
-                    String sanitizedLine = sanitizeLine(line, lineIpAddressToReplace);
+
+                    // Extract UUID
+                    ArrayList<String> lineUuidToReplace = UuidExtractor.extractUuid(line);
+                    fileUuidToReplace.addAll(lineUuidToReplace);
+
+                    // Remove duplicates from sanitized items Arraylist
+                    removeDuplicateFromArrayList(fileIpAddressesToReplace);
+                    removeDuplicateFromArrayList(fileUuidToReplace);
+
+                    // Sanitize line
+                    String sanitizedLine = sanitizeLine(line, lineIpAddressToReplace, fileIpAddressesToReplace , ipPlaceholder);
+                    sanitizedLine = sanitizeLine(sanitizedLine, lineUuidToReplace, fileUuidToReplace , uuidPlaceholder);
+
                     writer.append(sanitizedLine);
                     writer.newLine();
-                    removeDuplicateIp();
                 }
             } catch (IOException x) {
                 System.err.format("IOException in BufferedWriter: %s%n", x);
@@ -44,35 +60,41 @@ public class FileParser {
         }
     }
 
-    private boolean createDestFile() {
+    private void createDestFile() throws Exception {
         try {
             Files.createFile(destPath);
         } catch (Exception e) {
-            System.out.println("Error creating sanitized file: " + e);
-            return false;
+            throw new Exception("Error creating sanitized file: " + e);
         }
-        return true;
     }
 
 
     //Remove duplicate IP address
-    private void removeDuplicateIp() {
+    private void removeDuplicateFromArrayList(ArrayList arrayList) {
         // Create a new LinkedHashSet
         // Add the elements to set
-        Set<String> set = new LinkedHashSet<>(fileIpAddressesToReplace);
+        Set<String> set = new LinkedHashSet<>(arrayList);
 
         // Clear the list
-        fileIpAddressesToReplace.clear();
+        arrayList.clear();
 
         // add the elements of set
         // with no duplicates to the list
-        fileIpAddressesToReplace.addAll(set);
+        arrayList.addAll(set);
     }
 
-    private String sanitizeLine(String line, ArrayList<String> lineIpAddressToReplace) {
+    /** Sanitizes the line
+     *
+     * @param line String to be sanitized.
+     * @param lineArrayList Arraylist of items to be sanitized in the line.
+     * @param fileArrayList Arraylist of items sanitized from the file.
+     * @param placeholder Placeholder text
+     * @return
+     */
+    private String sanitizeLine(String line, ArrayList<String> lineArrayList, ArrayList fileArrayList, String placeholder) {
         String sanitizedLine = line;
-        for (String ip : lineIpAddressToReplace) {
-            sanitizedLine = sanitizedLine.replace(ip,"IP_ADDRESS_" + fileIpAddressesToReplace.indexOf(ip));
+        for (String item : lineArrayList) {
+            sanitizedLine = sanitizedLine.replace(item,placeholder + fileArrayList.indexOf(item));
         }
         return sanitizedLine;
     }

@@ -1,16 +1,21 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class StringSanitizer {
+public class IpExtractor {
     private static final Integer MAX_CHAR_AWAY = 4;
 
     public static void main(String[] args) {
-        stringSanitizer("115.76.36.47 - - [06/Oct/2021:00:44:53 -0700] \"POST /empower/drive/ubiquitous/e-commerce "
+        extractIp("115.76.36.47 - - [06/Oct/2021:00:44:53 -0700] \"POST /empower/drive/ubiquitous/e-commerce "
                 + "HTTP/2.0\" 401 26695 \"https://www.humancollaborative.name/robust/networks\" \"Mozilla/5.0 (X11; "
                 + "Linux x86_64) AppleWebKit/5360 (KHTML, like Gecko) Chrome/36.0.884.0 Mobile Safari/5360\"");
     }
 
-    public static ArrayList<String> stringSanitizer(String text) {
+    /** Extract IP addresses to be replaced.
+     *
+     * @param text String to be parsed.
+     * @return An Arraylist of IP addresses.
+     */
+    public static ArrayList<String> extractIp(String text) {
         char[] charArray = text.toCharArray();
         List<Integer> periodIndex = new ArrayList<>();
 
@@ -21,12 +26,12 @@ public class StringSanitizer {
         extractPeriodIndex(charArray, periodIndex);
         searchForThreeConsecutivePeriods(periodIndex, validPeriods);
         extractIpAddressesToReplace(text, charArray, validPeriods, ipAddressesToReplace);
-        validIpAddress(ipAddressesToReplace);
+        validateIpAddress(ipAddressesToReplace);
         return ipAddressesToReplace;
     }
 
     // Checks the validity of the IP address (Ensure each number is between 0 and 255.
-    private static void validIpAddress(ArrayList<String> ipAddressesToReplace) {
+    private static void validateIpAddress(ArrayList<String> ipAddressesToReplace) {
         ArrayList<String> duplicate = new ArrayList<>(ipAddressesToReplace);
         for (String ip : duplicate) {
             String[] array = ip.split("\\.");

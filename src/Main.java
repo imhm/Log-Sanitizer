@@ -17,10 +17,16 @@ public class Main {
             System.out.println("Run the program with the filepath of the logfile as the argument.");
             return;
         }
+
         System.out.println("Sanitizing log file...");
-        CommandLineArgumentParser parser = new CommandLineArgumentParser(args);
-        FileParser fp = new FileParser(parser.getSourcePath(), parser.getDestPath());
-        fp.fileParser();
-        System.out.println("Log file sanitized.");
+        try {
+            CommandLineArgumentParser parser = new CommandLineArgumentParser(args);
+            FileParser fp = new FileParser(parser.getSourcePath(), parser.getDestPath());
+            fp.fileParser();
+            System.out.println("Log file sanitized.");
+        } catch (Exception e) {
+            System.out.println("Unable to sanitize log file: ");
+            System.out.println(e.getMessage());
+        }
     }
 }
