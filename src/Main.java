@@ -21,7 +21,7 @@ public class Main {
         System.out.println("Sanitizing log file...");
         try {
             CommandLineArgumentParser parser = new CommandLineArgumentParser(args);
-            FileParser fp = new FileParser(parser.getSourcePath(), parser.getDestPath());
+            FileParser fp = new FileParser(parser.getSourcePath());
             fp.fileParser();
             System.out.println("Log file sanitized.");
         } catch (Exception e) {

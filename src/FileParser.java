@@ -1,27 +1,30 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class FileParser {
 
-    private ArrayList<String> fileIpAddressesToReplace = new ArrayList<>();
-    private ArrayList<String> fileUuidToReplace = new ArrayList<>();
     private final Charset charset = StandardCharsets.US_ASCII;
-    private Path destPath;
-    private Path sourcePath;
     private final String ipPlaceholder = "IP_ADDRESS_";
     private final String uuidPlaceholder = "UUID_";
+    private final String destDirectoryPath = "./Sanitized_Logs/";
+    private Path destPath;
+    private Path sourcePath;
+    private ArrayList<String> fileIpAddressesToReplace = new ArrayList<>();
+    private ArrayList<String> fileUuidToReplace = new ArrayList<>();
 
-    public FileParser(Path sourcePath, Path destPath) {
+    public FileParser(Path sourcePath) {
         this.sourcePath = sourcePath;
-        this.destPath = destPath;
+        this.destPath = Paths.get(destDirectoryPath, sourcePath.getFileName().toString());
     }
 
     public void fileParser() throws Exception{
@@ -61,6 +64,12 @@ public class FileParser {
     }
 
     private void createDestFile() throws Exception {
+
+        File directory = new File(destDirectoryPath);
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+
         try {
             Files.createFile(destPath);
         } catch (Exception e) {
