@@ -2,6 +2,10 @@
 
 Sanitizes a log file to replace IP addresses and UUIDs with placeholders.
 
+## How to use
+Using the command line, run: `java -jar Log_Sanitizer.jar </path/to/logfile>`
+The sanitized log will be stored in `./Sanitized_log`.
+
 ## How it works
 ### IP addresses
 Recognizes the pattern of any string from 0.0.0.0 to 255.255.255.255 as an IP address. These strings will be replaced
