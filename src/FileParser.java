@@ -18,16 +18,18 @@ public class FileParser {
     private final String ipPlaceholder = "IP_ADDRESS_";
     private final String uuidPlaceholder = "UUID_";
     private final String destDirectoryPath = "./Sanitized_Logs/";
+    private ArrayList<ArrayList<String>> customData;
     private Path sourcePath;
     private Path destPath;
     private Path summaryPath;
     private ArrayList<String> fileIpAddressesToReplace = new ArrayList<>();
     private ArrayList<String> fileUuidToReplace = new ArrayList<>();
 
-    public FileParser(Path sourcePath) {
+    public FileParser(Path sourcePath, CustomSanitizerParser customSanitizerParser) {
         this.sourcePath = sourcePath;
         this.destPath = Paths.get(destDirectoryPath, sourcePath.getFileName().toString());
-        this.summaryPath = Paths.get(destDirectoryPath, sourcePath.getFileName().toString() + "_summary");
+        this.summaryPath = Paths.get(destDirectoryPath, "Summary - " + sourcePath.getFileName().toString());
+        customData = customSanitizerParser.getCustomData();
     }
 
     public void fileParser() throws Exception{
@@ -38,6 +40,17 @@ public class FileParser {
         // Write change summary file
         writeChangeSummary(fileIpAddressesToReplace, ipPlaceholder);
         writeChangeSummary(fileUuidToReplace, uuidPlaceholder);
+        writeCustomChangeSummary();
+    }
+
+    private void writeCustomChangeSummary() throws IOException {
+        try (BufferedWriter writer = Files.newBufferedWriter(summaryPath, charset, StandardOpenOption.APPEND)) {
+            for (ArrayList<String> arrayList : customData) {
+                String output = arrayList.get(1) + " : " + arrayList.get(0);
+                writer.append(output);
+                writer.newLine();
+            }
+        }
     }
 
     private void sanitizeFile() {
@@ -58,9 +71,14 @@ public class FileParser {
                     removeDuplicateFromArrayList(fileIpAddressesToReplace);
                     removeDuplicateFromArrayList(fileUuidToReplace);
 
-                    // Sanitize line
+                    // Sanitize line - IP and UUIDs
                     String sanitizedLine = sanitizeLine(line, lineIpAddressToReplace, fileIpAddressesToReplace , ipPlaceholder);
                     sanitizedLine = sanitizeLine(sanitizedLine, lineUuidToReplace, fileUuidToReplace , uuidPlaceholder);
+
+                    // Sanitize line - custom sanitization
+                    for (ArrayList<String> arrayList : customData) {
+                        sanitizedLine = sanitizedLine.replace(arrayList.get(0), arrayList.get(1));
+                    }
 
                     writer.append(sanitizedLine);
                     writer.newLine();
