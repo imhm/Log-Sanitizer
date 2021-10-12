@@ -20,7 +20,7 @@ Recognizes the pattern of any string of 32 hexadecimal digits displayed in 5 gro
 To sanitize custom texts, run: `java -jar Log_Sanitizer.jar <path/to/logfile> <path/to/custom_sanitizer>`
 Refer to the file `custom_sanitizer`.
 1. Replace the semicolon in line 2 with your desired separator. 
-2. Add each custom text to be sanitized on a new line, in the format of: <text_to_be_replaced><separator><placeholder
+2. Add each custom text to be sanitized *on a new line*, in the format of: <text_to_be_replaced><separator><placeholder>
 > ie. p@ssw0rd;PASSWORD
 
 ## Application information
