@@ -16,9 +16,21 @@ public class Main {
         System.out.println("Sanitizing log file...");
         try {
             CommandLineArgumentParser commandLineArgumentParser = new CommandLineArgumentParser(args);
-            CustomSanitizerParser customSanitizerParser = new CustomSanitizerParser(commandLineArgumentParser.getCustomSanitizerPath());
-            FileParser fp = new FileParser(commandLineArgumentParser.getSourcePath(), customSanitizerParser);
-            fp.fileParser();
+            CustomSanitizerParser customSanitizerParser =
+                    new CustomSanitizerParser(commandLineArgumentParser.getCustomSanitizerPath());
+
+
+            if (commandLineArgumentParser.getFileExtension() == CommandLineArgumentParser.FILE_EXTENSION.DEFAULT) {
+                // Parse single file
+                System.out.println("File extension: Default");
+                FileParser fp = new FileParser(commandLineArgumentParser.getSourcePath(), customSanitizerParser);
+                fp.fileParser();
+            } else {
+                // Parse archive file
+                ArchiveCompress.archiveFileParser(commandLineArgumentParser.getSourcePath(), customSanitizerParser,
+                        commandLineArgumentParser.getFileExtension());
+            }
+
             System.out.println("Log file sanitized.");
         } catch (Exception e) {
             System.out.println("Unable to sanitize log file: ");

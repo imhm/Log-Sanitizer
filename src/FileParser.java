@@ -1,3 +1,4 @@
+import org.apache.commons.io.FilenameUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -22,13 +23,29 @@ public class FileParser {
     private Path sourcePath;
     private Path destPath;
     private Path summaryPath;
+    private BufferedReader sourceReader;
     private ArrayList<String> fileIpAddressesToReplace = new ArrayList<>();
     private ArrayList<String> fileUuidToReplace = new ArrayList<>();
 
     public FileParser(Path sourcePath, CustomSanitizerParser customSanitizerParser) {
         this.sourcePath = sourcePath;
-        this.destPath = Paths.get(destDirectoryPath, sourcePath.getFileName().toString());
-        this.summaryPath = Paths.get(destDirectoryPath, "Summary - " + sourcePath.getFileName().toString());
+        File file = new File(sourcePath.toString());
+        String fileName = file.getName();
+        String fileNameWithOutExt = FilenameUtils.removeExtension(fileName);
+        this.destPath = Paths.get(destDirectoryPath, fileNameWithOutExt);
+        this.summaryPath = Paths.get(destDirectoryPath, "Summary - " + fileNameWithOutExt);
+        customData = customSanitizerParser.getCustomData();
+    }
+
+    public FileParser(Path sourcePath, CustomSanitizerParser customSanitizerParser, BufferedReader sourceReader) {
+        this.sourceReader = sourceReader;
+        File file = new File(sourcePath.toString());
+        String fileName = file.getName();
+        String fileNameWithOutExt = FilenameUtils.removeExtension(fileName);
+        this.destPath = Paths.get(destDirectoryPath, fileNameWithOutExt);
+        this.summaryPath = Paths.get(destDirectoryPath, "Summary - " + fileNameWithOutExt);
+//        this.summaryPath = Paths.get(destDirectoryPath, "Summary - " + sourcePath.getFileName().toString());
+//        this.destPath = Paths.get(destDirectoryPath, sourcePath.getFileName().toString());
         customData = customSanitizerParser.getCustomData();
     }
 
@@ -54,7 +71,13 @@ public class FileParser {
     }
 
     private void sanitizeFile() {
-        try (BufferedReader reader = Files.newBufferedReader(sourcePath, charset)) {
+        try {
+            BufferedReader reader = sourceReader;
+
+            if (sourceReader == null) {
+                reader = Files.newBufferedReader(sourcePath, charset);
+            }
+
             try (BufferedWriter writer = Files.newBufferedWriter(destPath, charset)) {
                 String line;
                 // Sanitize line by line.
@@ -86,10 +109,10 @@ public class FileParser {
             } catch (IOException x) {
                 System.err.format("IOException in BufferedWriter: %s%n", x);
             }
-
         } catch (IOException x) {
             System.err.format("IOException in BufferedReader: %s%n", x);
         }
+
     }
 
     private void writeChangeSummary(ArrayList<String> fileArrayList, String placeholder) throws IOException {
@@ -104,12 +127,13 @@ public class FileParser {
 
     private void createDestFile() throws Exception {
 
-        File directory = new File(destDirectoryPath);
-        if (!directory.exists()) {
-            directory.mkdir();
-        }
-
         try {
+            File destFile = new File(destPath.toString());
+            File parent = destFile.getParentFile();
+            if (!parent.isDirectory()
+                    && !parent.mkdirs()) {    // if parent file is not a dir & unable ot make parent dir
+                throw new IOException("Failed to create directory " + parent);
+            }
             Files.createFile(destPath);
             Files.createFile(summaryPath);
         } catch (Exception e) {
@@ -137,8 +161,8 @@ public class FileParser {
      * @param line String to be sanitized.
      * @param lineArrayList Arraylist of items to be sanitized in the line.
      * @param fileArrayList Arraylist of items sanitized from the file.
-     * @param placeholder Placeholder text
-     * @return
+     * @param placeholder Placeholder text.
+     * @return Sanitized line.
      */
     private String sanitizeLine(String line, ArrayList<String> lineArrayList, ArrayList fileArrayList, String placeholder) {
         String sanitizedLine = line;
