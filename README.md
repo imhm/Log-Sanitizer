@@ -5,7 +5,7 @@ Sanitizes log files to replace IP addresses, UUIDs and any custom texts with pla
 ## How to use
 * Using the command line, run: `java -jar Log_Sanitizer.jar </path/to/logfile>`
 * To sanitize custom texts, run: `java -jar Log_Sanitizer.jar <path/to/logfile> <path/to/custom_sanitizer>`
-<br>_Refer to [How to use: Custom Texts](markdown-header-custom-texts) to learn how to configure the `custom_sanitizer
+<br>_Refer to [How to use: Custom Texts](#markdown-header-custom-texts) to learn how to configure the `custom_sanitizer
 ` file._
 
 Archived log file formats accepted: `.zip`, `.tar`, `.tgz`. This application accepts any other unarchived log
