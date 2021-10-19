@@ -12,6 +12,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class FileParser {
 
@@ -100,7 +101,8 @@ public class FileParser {
 
                     // Sanitize line - custom sanitization
                     for (ArrayList<String> arrayList : customData) {
-                        sanitizedLine = sanitizedLine.replace(arrayList.get(0), arrayList.get(1));
+                        // Replace custom string case insensitive
+                        sanitizedLine = sanitizedLine.replaceAll("(?i)" + Pattern.quote(arrayList.get(0)), arrayList.get(1));
                     }
 
                     writer.append(sanitizedLine);

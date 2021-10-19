@@ -29,6 +29,7 @@ Refer to the file `custom_sanitizer`.
 2. Add each custom text to be sanitized *on a new line*, in the format of: <text_to_be_replaced><separator><placeholder>
 > ie. p@ssw0rd;PASSWORD
 
+_The text to be replaced are case-insensitive._
 ## Application information
 * Uses Java 11.0.8
 
